@@ -1,0 +1,201 @@
+
+plans = []  # store all study plans
+
+while True:
+    print("\n====== STUDY PLANNER MENU ======")
+    print("1. Add Plan")
+    print("2. View Plans")
+    print("3. Edit Plan")
+    print("4. Delete Plan")
+    print("5. Search Plans by Date")
+    print("6. Exit")
+
+    choice = input("Choose an option: ")
+
+    today = datetime.now().date()  # current date
+
+    # ================= ADD PLAN =================
+    if choice == "1":
+        print("\n=== ADD STUDY PLAN ===")
+        name = input("Enter plan name: ")
+        subject = input("Enter subject: ")
+
+        # Validate start date
+        while True:
+            start_date = input("Enter start date (YYYY-MM-DD): ")
+            try:
+                start_obj = datetime.strptime(start_date, "%Y-%m-%d").date()
+                if start_obj < today:
+                    print("❌ Start date cannot be in the past.")
+                else:
+                    break
+            except:
+                print("❌ Invalid date format. Use YYYY-MM-DD.")
+
+        # Validate deadline
+        while True:
+            deadline = input("Enter deadline (YYYY-MM-DD): ")
+            try:
+                deadline_obj = datetime.strptime(deadline, "%Y-%m-%d").date()
+                if deadline_obj < start_obj:
+                    print("❌ Deadline cannot be before start date.")
+                else:
+                    break
+            except:
+                print("❌ Invalid date format. Use YYYY-MM-DD.")
+
+        plans.append({
+            "id": len(plans) + 1,
+            "name": name,
+            "subject": subject,
+            "start_date": start_date,
+            "deadline": deadline
+        })
+
+        print(f"✔ Plan added! Start: {start_date}, Due: {deadline}")
+
+    # ================= VIEW PLANS =================
+    elif choice == "2":
+        print("\n=== STUDY PLANS ===")
+        if not plans:
+            print("No plans yet.\n")
+        else:
+            for p in plans:
+                start_obj = datetime.strptime(p["start_date"], "%Y-%m-%d").date()
+                deadline_obj = datetime.strptime(p["deadline"], "%Y-%m-%d").date()
+
+                # Determine status
+                if today < start_obj:
+                    status = "Pending"
+                elif start_obj <= today <= deadline_obj:
+                    status = "Ongoing"
+                elif today > deadline_obj:
+                    status = "Not done"
+                else:
+                    status = "Pending"
+
+                print(f"[{p['id']}] {p['name']} - {p['subject']} - Start: {p['start_date']} - Due: {p['deadline']} - Status: {status}")
+
+    # ================= EDIT PLAN =================
+    elif choice == "3":
+        print("\n=== EDIT PLAN ===")
+        if not plans:
+            print("No plans to edit.")
+        else:
+            for p in plans:
+                print(f"[{p['id']}] {p['name']} - {p['subject']} - Start: {p['start_date']} - Due: {p['deadline']}")
+
+            plan_id = input("Enter plan ID to edit: ")
+            found = None
+            for p in plans:
+                if str(p["id"]) == plan_id:
+                    found = p
+                    break
+
+            if not found:
+                print("❌ Plan not found.")
+            else:
+                new_name = input("New name (leave blank to keep): ")
+                new_subject = input("New subject (leave blank to keep): ")
+
+                # Start date edit
+                new_start = input("New start date (YYYY-MM-DD, leave blank to keep): ")
+                if new_start.strip():
+                    while True:
+                        try:
+                            new_start_obj = datetime.strptime(new_start, "%Y-%m-%d").date()
+                            if new_start_obj < today:
+                                print("❌ Start date cannot be in the past.")
+                                new_start = input("New start date (YYYY-MM-DD): ")
+                            else:
+                                found["start_date"] = new_start
+                                break
+                        except:
+                            print("❌ Invalid date format.")
+                            new_start = input("New start date (YYYY-MM-DD): ")
+
+                # Deadline edit
+                new_deadline = input("New deadline (YYYY-MM-DD, leave blank to keep): ")
+                if new_deadline.strip():
+                    while True:
+                        try:
+                            new_deadline_obj = datetime.strptime(new_deadline, "%Y-%m-%d").date()
+                            start_obj = datetime.strptime(found["start_date"], "%Y-%m-%d").date()
+                            if new_deadline_obj < start_obj:
+                                print("❌ Deadline cannot be before start date.")
+                                new_deadline = input("New deadline (YYYY-MM-DD): ")
+                            else:
+                                found["deadline"] = new_deadline
+                                break
+                        except:
+                            print("❌ Invalid date format.")
+                            new_deadline = input("New deadline (YYYY-MM-DD): ")
+
+                if new_name.strip():
+                    found["name"] = new_name
+                if new_subject.strip():
+                    found["subject"] = new_subject
+
+                print(f"✔ Plan updated! Start: {found['start_date']}, Due: {found['deadline']}")
+
+    # ================= DELETE PLAN =================
+    elif choice == "4":
+        print("\n=== DELETE PLAN ===")
+        if not plans:
+            print("No plans to delete.")
+        else:
+            for p in plans:
+                print(f"[{p['id']}] {p['name']} - {p['subject']} - Start: {p['start_date']} - Due: {p['deadline']}")
+
+            plan_id = input("Enter plan ID to delete: ")
+            deleted = False
+            for p in plans:
+                if str(p["id"]) == plan_id:
+                    plans.remove(p)
+                    print("✔ Plan deleted.")
+                    deleted = True
+                    break
+            if not deleted:
+                print("❌ Plan not found.")
+
+    # ================= SEARCH BY DATE =================
+    elif choice == "5":
+        print("\n=== SEARCH PLANS BY DATE ===")
+        date_search = input("Enter date (YYYY-MM-DD): ")
+
+        try:
+            datetime.strptime(date_search, "%Y-%m-%d")
+        except:
+            print("❌ Invalid date format.")
+            continue
+
+        found_any = False
+        print(f"\nPlans on {date_search}:")
+        for p in plans:
+            if p["start_date"] == date_search or p["deadline"] == date_search:
+                start_obj = datetime.strptime(p["start_date"], "%Y-%m-%d").date()
+                deadline_obj = datetime.strptime(p["deadline"], "%Y-%m-%d").date()
+
+                # Determine status
+                if today < start_obj:
+                    status = "Pending"
+                elif start_obj <= today <= deadline_obj:
+                    status = "Ongoing"
+                elif today > deadline_obj:
+                    status = "Not done"
+                else:
+                    status = "Pending"
+
+                print(f"[{p['id']}] {p['name']} - {p['subject']} - Start: {p['start_date']} - Due: {p['deadline']} - Status: {status}")
+                found_any = True
+
+        if not found_any:
+            print("No plans found on this date.")
+
+    # ================= EXIT =================
+    elif choice == "6":
+        print("Goodbye!")
+        break
+
+    else:
+        print("❌ Invalid choice, try again.")
